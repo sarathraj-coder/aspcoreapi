@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using school.Configurations;
 using school.Data;
+using school.Data.Repository;
 using school.MyLogging;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,8 +19,8 @@ options.ReturnHttpNotAcceptable =true).AddNewtonsoftJson().AddXmlDataContractSer
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IMyLogger, FileLogger>();
-
+builder.Services.AddTransient<IMyLogger, FileLogger>();
+builder.Services.AddTransient<IStudentRepository, StudentRepository>();
 //builder.Services.AddSingleton<IMyLogger, FileLogger>();
 //builder.Services.AddTransient<IMyLogger, FileLogger>();
 builder.Services.AddDbContext<CollegeDBContext>(options =>
