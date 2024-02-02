@@ -14,11 +14,11 @@ namespace school.Controllers
 		{
 		}
 
-        [HttpGet]
-        public IEnumerable<Student> GetStudents()
-        {
-            return CollegeRepostory.Students;
-        }
+        // [HttpGet]
+        // public IEnumerable<Student> GetStudents()
+        // {
+        //     return CollegeRepostory.Students;
+        // }
 
 
     }

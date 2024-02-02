@@ -14,13 +14,13 @@ namespace school.Model
         public String Name { get; set; }
         [Required]
         public String Address { get; set; }
-        [EmailAddress(ErrorMessage = "Student name is required ")]
+        [EmailAddress(ErrorMessage = "Student Email is required ")]
         [Required]
         public String Email { get; set; }
 
         //customs validator
-        [DateValidator]
-        public String admissionDate { get; set; }
+        // [DateValidator]
+          public String Dob { get; set; }
     }
 }
 

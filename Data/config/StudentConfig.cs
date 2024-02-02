@@ -15,6 +15,8 @@ namespace school.Data.Config
             builder.Property(s => s.Address).HasMaxLength(500);
             builder.Property(s => s.Email).IsRequired();
             builder.Property(s => s.Email).HasMaxLength(256);
+             builder.Property(s => s.Dob).IsRequired();
+            
         }
     }
 }

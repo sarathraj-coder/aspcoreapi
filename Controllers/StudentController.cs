@@ -1,16 +1,24 @@
 ﻿using System;
+using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using school.Data;
+using school.Data.Repository;
 using school.Model;
-
 namespace school.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
-		public StudentController()
+       
+        private readonly IStudentRepository _studentRepository;
+        private readonly IMapper _iMapper;
+		public StudentController(IStudentRepository studentRepository, IMapper iMapper)
 		{
+            this._studentRepository = studentRepository;
+            this._iMapper = iMapper;
 		}
 
         [HttpGet]
@@ -22,18 +30,22 @@ namespace school.Controllers
         [HttpGet]
         [Route("All",Name ="GetAllStudents")]
         [ProducesResponseType(200,Type = typeof(IEnumerable<Student>))]
-        public ActionResult<IEnumerable<StudentDTO>> GetStudents()
+        public async Task<ActionResult<IEnumerable<StudentDTO>>> GetStudents()
         {
-           var Students =  CollegeRepostory.Students.Select(n => new StudentDTO()
-            {
+            var Students = await _studentRepository.GetAllStudents();
+            var studentDtoData = _iMapper.Map<IEnumerable<StudentDTO>>(Students);
 
-                Id = n.Id,
-                Name = n.Name,
-                Address = n.Address,
-                Email = n.Email
+        //    var Students =  _collegeDBContext.Students.Select(n => new StudentDTO()
+        //     {
 
-            });
-            return Ok(Students);
+        //         Id = n.Id,
+        //         Name = n.Name,
+        //         Address = n.Address,
+        //         Email = n.Email,
+        //         Dob = n.Dob.ToString("yyyy-MM-dd")
+
+        //     });
+            return Ok(studentDtoData);
         }
 
         [HttpGet]
@@ -41,48 +53,43 @@ namespace school.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<StudentDTO> GetStudentById(int id)
+        public async Task<ActionResult<StudentDTO>> GetStudentById(int id)
         {
             if (id <= 0) return BadRequest();
-            var student = CollegeRepostory.Students.Where(i => i.Id == id).FirstOrDefault();
+            var student = await _studentRepository.GetStudentById(id);
             if(student == null) return NotFound();
-            return Ok(new StudentDTO() {
-                Id = student.Id,
-                Name = student.Name,
-                Address = student.Address,
-                Email = student.Email
-            });
+            // return Ok(new StudentDTO() {
+            //     Id = student.Id,
+            //     Name = student.Name,
+            //     Address = student.Address,
+            //     Email = student.Email
+            // });
+            return Ok(_iMapper.Map<StudentDTO>(student));
+
         }
 
         [HttpGet("{name}", Name = "GetStudentByName")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<StudentDTO> GetStudentByName(string name)
+        public async Task<ActionResult<StudentDTO>> GetStudentByName(string name)
         {
-            if (string.IsNullOrEmpty(name)) return BadRequest();
-            var student = CollegeRepostory.Students.Where(i => i.Name == name).FirstOrDefault();
+            if (string.IsNullOrEmpty(name)) return  BadRequest();
+            var student = await _studentRepository.GetStudentByName(name);
             if (student == null) return NotFound();
-            return Ok(new StudentDTO()
-            {
-                Id = student.Id,
-                Name = student.Name,
-                Address = student.Address,
-                Email = student.Email
-            });
+           
+            return Ok(_iMapper.Map<StudentDTO>(student));
         }
 
         [HttpDelete("{id:int}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Boolean> DeleteStudentById(int id)
+        public async  Task<ActionResult<Boolean>> DeleteStudentById(int id)
         {
             if (id <= 0) return BadRequest();
-            var student =  CollegeRepostory.Students.Where(i => i.Id == id).FirstOrDefault();
-            if (student == null) return NotFound();
-            CollegeRepostory.Students.Remove(student);
-            return Ok(true);
+            var status = await _studentRepository.DeleteStudent(id);
+            return Ok(status);
         }
 
 
@@ -91,19 +98,21 @@ namespace school.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<StudentDTO> CreateStudent([FromBody] StudentDTO studentDto)
+        public async  Task<ActionResult<StudentDTO>> CreateStudent([FromBody] StudentDTO studentDto)
         {
             if (studentDto == null) return BadRequest();
-            var studentId = CollegeRepostory.Students.LastOrDefault().Id + 1;
-   
-                CollegeRepostory.Students.Add(new Student()
-                {
-                    Id = studentId,
-                    Name = studentDto.Name,
-                    Address = studentDto.Address,
-                    Email = studentDto.Email
-                });
-            studentDto.Id = studentId;
+            //var studentId = _collegeDBContext.Students.LastOrDefault().Id + 1;
+            //   var student  =new Student()
+            //     {
+            //         Name = studentDto.Name,
+            //         Address = studentDto.Address,
+            //         Email = studentDto.Email,
+            //         Dob= Convert.ToDateTime(studentDto.Dob)
+            //     };
+            var student = _iMapper.Map<StudentDTO, Student>(studentDto);
+              var studentReturnedId =  await  _studentRepository.CreateStudent(student);
+             studentDto.Id = studentReturnedId;
+            //_collegeDBContext.SaveChanges();
             return CreatedAtRoute("GetStudentById", new { id = studentDto .Id }, studentDto);
            // return Ok(studentDto);
 
@@ -120,13 +129,8 @@ namespace school.Controllers
         public ActionResult<StudentDTO> UpdateStudent([FromBody] StudentDTO studentDto)
         {
             if (studentDto == null) return BadRequest();
-            var student = CollegeRepostory.Students.Where(i => i.Id == studentDto.Id).FirstOrDefault();
-            if (student == null) return NotFound();
-
-            student.Name = studentDto.Name;
-            student.Address = studentDto.Address;
-            student.Email = studentDto.Email;
-    
+              var student = _iMapper.Map<StudentDTO, Student>(studentDto);
+             var studentId = _studentRepository.UpdateStudent(student);
             return NoContent();
             // return Ok(studentDto);
         }
@@ -141,28 +145,31 @@ namespace school.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<StudentDTO> UpdateStudentPartial(int id, [FromBody] JsonPatchDocument<StudentDTO> patchDocument)
+        public async Task<ActionResult<StudentDTO>> UpdateStudentPartial(int id, [FromBody] JsonPatchDocument<StudentDTO> patchDocument)
         {
             if (patchDocument == null || id<=0) return BadRequest();
-            var student = CollegeRepostory.Students.Where(i => i.Id == id).FirstOrDefault();
+            //var student = _collegeDBContext.Students.Where(i => i.Id == id).FirstOrDefault();
+             var student = await _studentRepository.GetStudentById(id);
             if (student == null) return NotFound();
 
-            var studentDto= new StudentDTO()
-            {
-                Id = student.Id,
-                Name = student.Name,
-                Address = student.Address,
-                Email = student.Email
-            };
+            // var studentDto= new StudentDTO()
+            // {
+            //     Id = student.Id,
+            //     Name = student.Name,
+            //     Address = student.Address,
+            //     Email = student.Email
+            // };
+            var studentDto = _iMapper.Map<StudentDTO>(student);
 
             patchDocument.ApplyTo(studentDto, ModelState);
             if(!ModelState.IsValid)
                 return BadRequest();
 
-            student.Name = studentDto.Name;
-            student.Address = studentDto.Address;
-            student.Email = studentDto.Email;
-
+            // student.Name = studentDto.Name;
+            // student.Address = studentDto.Address;
+            // student.Email = studentDto.Email;
+            // _studentRepository.SaveChanges();
+            var result =  await _studentRepository.UpdateStudent(student);
             return NoContent();
             // return Ok(studentDto);
         }

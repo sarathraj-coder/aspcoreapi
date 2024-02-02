@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "5CM8A66fFprzt9zEldce0QfFv/SiBGDbjgIxpwhf76HzKsHahluXOwrKxxKRIqkSopeikdm6yddseUt9NBhyeA==",
+  "dgSpecHash": "D0V+vIw3h3FsjVZiD6IpEzqmnbqxDFDc97nY7avgIh3sAK7qnYTd70oFho4jxUbUetIrRf0foIGrjjCidda4RA==",
   "success": true,
   "projectFilePath": "/Users/sraj/c_sharp/school/school.csproj",
   "expectedPackageFiles": [
+    "/Users/sraj/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
+    "/Users/sraj/.nuget/packages/automapper.extensions.microsoft.dependencyinjection/12.0.1/automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "/Users/sraj/.nuget/packages/azure.core/1.25.0/azure.core.1.25.0.nupkg.sha512",
     "/Users/sraj/.nuget/packages/azure.identity/1.7.0/azure.identity.1.7.0.nupkg.sha512",
     "/Users/sraj/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
