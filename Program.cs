@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using school.Configurations;
 using school.Data;
@@ -21,6 +22,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IMyLogger, FileLogger>();
 builder.Services.AddTransient<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped(typeof(ICollegeRepository<>),typeof(CollegeRepository<>));
 //builder.Services.AddSingleton<IMyLogger, FileLogger>();
 //builder.Services.AddTransient<IMyLogger, FileLogger>();
 builder.Services.AddDbContext<CollegeDBContext>(options =>

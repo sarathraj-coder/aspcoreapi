@@ -13,9 +13,9 @@ namespace school.Controllers
     public class StudentController : ControllerBase
     {
        
-        private readonly IStudentRepository _studentRepository;
+        private readonly ICollegeRepository<Student> _studentRepository;
         private readonly IMapper _iMapper;
-		public StudentController(IStudentRepository studentRepository, IMapper iMapper)
+		public StudentController(ICollegeRepository<Student>  studentRepository, IMapper iMapper)
 		{
             this._studentRepository = studentRepository;
             this._iMapper = iMapper;
@@ -32,7 +32,7 @@ namespace school.Controllers
         [ProducesResponseType(200,Type = typeof(IEnumerable<Student>))]
         public async Task<ActionResult<IEnumerable<StudentDTO>>> GetStudents()
         {
-            var Students = await _studentRepository.GetAllStudents();
+            var Students = await _studentRepository.GetAllAsync();
             var studentDtoData = _iMapper.Map<IEnumerable<StudentDTO>>(Students);
 
         //    var Students =  _collegeDBContext.Students.Select(n => new StudentDTO()
@@ -56,7 +56,7 @@ namespace school.Controllers
         public async Task<ActionResult<StudentDTO>> GetStudentById(int id)
         {
             if (id <= 0) return BadRequest();
-            var student = await _studentRepository.GetStudentById(id);
+            var student = await _studentRepository.GetByIdAsync(student => student.Id == id);
             if(student == null) return NotFound();
             // return Ok(new StudentDTO() {
             //     Id = student.Id,
@@ -75,7 +75,7 @@ namespace school.Controllers
         public async Task<ActionResult<StudentDTO>> GetStudentByName(string name)
         {
             if (string.IsNullOrEmpty(name)) return  BadRequest();
-            var student = await _studentRepository.GetStudentByName(name);
+            var student = await _studentRepository.GetByNameAsync(student => student.Name == name);
             if (student == null) return NotFound();
            
             return Ok(_iMapper.Map<StudentDTO>(student));
@@ -88,8 +88,12 @@ namespace school.Controllers
         public async  Task<ActionResult<Boolean>> DeleteStudentById(int id)
         {
             if (id <= 0) return BadRequest();
-            var status = await _studentRepository.DeleteStudent(id);
-            return Ok(status);
+            var student = await  _studentRepository.GetByIdAsync(student => student.Id == id);
+            if(await _studentRepository.Delete(student))
+            {
+                return Ok(true);
+            }
+            return NotFound();
         }
 
 
@@ -110,8 +114,8 @@ namespace school.Controllers
             //         Dob= Convert.ToDateTime(studentDto.Dob)
             //     };
             var student = _iMapper.Map<StudentDTO, Student>(studentDto);
-              var studentReturnedId =  await  _studentRepository.CreateStudent(student);
-             studentDto.Id = studentReturnedId;
+              var student1 =  await  _studentRepository.CreateAsync(student);
+             studentDto.Id = student1.Id;
             //_collegeDBContext.SaveChanges();
             return CreatedAtRoute("GetStudentById", new { id = studentDto .Id }, studentDto);
            // return Ok(studentDto);
@@ -130,7 +134,7 @@ namespace school.Controllers
         {
             if (studentDto == null) return BadRequest();
               var student = _iMapper.Map<StudentDTO, Student>(studentDto);
-             var studentId = _studentRepository.UpdateStudent(student);
+             var studentId = _studentRepository.UpdateAsync(student);
             return NoContent();
             // return Ok(studentDto);
         }
@@ -149,7 +153,7 @@ namespace school.Controllers
         {
             if (patchDocument == null || id<=0) return BadRequest();
             //var student = _collegeDBContext.Students.Where(i => i.Id == id).FirstOrDefault();
-             var student = await _studentRepository.GetStudentById(id);
+             var student = await _studentRepository.GetByIdAsync(student => student.Id == id);
             if (student == null) return NotFound();
 
             // var studentDto= new StudentDTO()
@@ -169,7 +173,7 @@ namespace school.Controllers
             // student.Address = studentDto.Address;
             // student.Email = studentDto.Email;
             // _studentRepository.SaveChanges();
-            var result =  await _studentRepository.UpdateStudent(student);
+            var result =  await _studentRepository.UpdateAsync(student);
             return NoContent();
             // return Ok(studentDto);
         }

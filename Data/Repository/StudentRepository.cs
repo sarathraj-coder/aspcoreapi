@@ -7,7 +7,8 @@ namespace school.Data.Repository
     {
         private readonly CollegeDBContext _collegeDBContext;
 
-        StudentRepository(CollegeDBContext collegeDBContext)
+        
+        public StudentRepository(CollegeDBContext collegeDBContext)
         {
             _collegeDBContext = collegeDBContext;
         }
